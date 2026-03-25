@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
   :root {
@@ -34,14 +33,13 @@ const globalStyles = `
   @keyframes pulse-line { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
 `;
 
-// ─── DATA ─────────────────────────────────────────────────────────────────────
 const ROLES = ["AI Builder", "Software Engineer", "Automation Expert", "Ethical Hacker", "SaaS Architect"];
 
 const PROJECTS = [
-  { id: "001", title: "AI DEV TEAM ORCHESTRATOR", desc: "Multi-agent AI system using local Ollama models. Routes tasks to specialized agents planner, coder, reviewer running entirely on-device.", tags: [["AI","ai"],["AUTOMATION","auto"],["TOOLS","tools"]] },
+  { id: "001", title: "AI DEV TEAM ORCHESTRATOR", desc: "Multi-agent AI system using local Ollama models. Routes tasks to specialized agents — planner, coder, reviewer — running entirely on-device.", tags: [["AI","ai"],["AUTOMATION","auto"],["TOOLS","tools"]] },
   { id: "002", title: "ONE-SCRIPT SALES ENGINE", desc: "End-to-end lead automation pipeline. One script handles outreach, follow-ups, and CRM updates — zero manual work in the funnel.", tags: [["AUTOMATION","auto"],["TOOLS","tools"]] },
   { id: "003", title: "TERMINAL AI SYSTEM", desc: "Local AI assistant running via terminal. Fully offline, built on Ollama. Responds to commands, reads files, and executes scripted workflows.", tags: [["AI","ai"],["TOOLS","tools"]] },
-  { id: "004", title: "3D WEB EXPERIMENTS", desc: "Interactive 3D UI concepts built with Spline. CSS-driven animations and spatial interfaces exploring the future of the web, lightweight.", tags: [["WEB","web"],["CREATIVE","ai"]] },
+  { id: "004", title: "3D WEB EXPERIMENTS", desc: "Interactive 3D UI concepts built with Spline. CSS-driven animations and spatial interfaces — exploring the future of the web, lightweight.", tags: [["WEB","web"],["CREATIVE","ai"]] },
 ];
 
 const SKILLS = [
@@ -65,7 +63,10 @@ const TERMINAL_LINES = [
   { cls: "prompt",  text: "$ _" },
 ];
 
-// ─── COMPONENTS ───────────────────────────────────────────────────────────────
+const CONTACT_CARDS = [
+  { icon: "📧", label: "EMAIL",  val: "abdulhameedamin@hotmail.com", href: "mailto:abdulhameedamin@hotmail.com" },
+  { icon: "🐙", label: "GITHUB", val: "github.com/Gamer77nyh",        href: "https://github.com/Gamer77nyh" },
+];
 
 function Cursor() {
   const curRef = useRef(null);
@@ -176,7 +177,6 @@ function Terminal({ onClose }) {
   );
 }
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function Portfolio() {
   const [termOpen, setTermOpen] = useState(false);
   const tagColors = { ai:"#00e5ff", auto:"#ff6d00", web:"#00ff41", tools:"#e040fb" };
@@ -240,7 +240,7 @@ export default function Portfolio() {
         </div>
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,maxWidth:900,margin:"0 auto",alignItems:"center" }} className="about-grid">
           <div>
-            {["I'm a <software engineer> and <AI builder> based in Abuja, Nigeria operating at the intersection of automation, intelligence, and systems design.","I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.","Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software fast."].map((p,i) => (
+            {["I'm a <software engineer> and <AI builder> based in Abuja, Nigeria — operating at the intersection of automation, intelligence, and systems design.","I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.","Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software — fast."].map((p,i) => (
               <p key={i} className="reveal" style={{ fontSize:16,lineHeight:1.9,color:"#a5d6a7",marginBottom:16,fontWeight:300 }}
                 dangerouslySetInnerHTML={{ __html: p.replace(/<([^>]+)>/g, '<span style="color:var(--cyan);font-family:var(--font-mono);font-size:14px">$1</span>') }} />
             ))}
@@ -310,16 +310,36 @@ export default function Portfolio() {
         </div>
         <div style={{ maxWidth:600,margin:"0 auto",textAlign:"center" }}>
           <p style={{ fontSize:16,color:"#81c784",lineHeight:1.9,marginBottom:40,fontWeight:300 }}>Got a project? Want to collaborate? Ready to automate something? Let's talk.</p>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:40 }}>
-            {[["📧","EMAIL","abdulhameedamin@hotmail.com"],["🐙","GITHUB","https://github.com/Gamer77nyh"],["💼","LINKEDIN","in/abdulhameedamin"]].map(([icon,label,val],i) => (
-              <div key={i} className="reveal" style={{ background:"var(--card)",border:"1px solid var(--border)",padding:20,transition:"all .3s",cursor:"none" }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4140";e.currentTarget.style.transform="translateY(-4px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";}}>
+
+          {/* ── CONTACT CARDS ── */}
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:40 }}>
+            {CONTACT_CARDS.map(({ icon, label, val, href }, i) => (
+              
+                key={i}
+                href={href}
+                target={href.startsWith("mailto") ? "_self" : "_blank"}
+                rel="noopener noreferrer"
+                className="reveal"
+                style={{
+                  background:"var(--card)",
+                  border:"1px solid var(--border)",
+                  padding:20,
+                  transition:"all .3s",
+                  textDecoration:"none",
+                  display:"block",
+                  cursor:"pointer",
+                }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4140";e.currentTarget.style.transform="translateY(-4px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";}}
+              >
                 <div style={{ fontSize:22,marginBottom:8 }}>{icon}</div>
                 <div style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"var(--orange)",letterSpacing:2,marginBottom:4 }}>{label}</div>
-                <div style={{ fontFamily:"var(--font-mono)",fontSize:12,color:"var(--cyan)" }}>{val}</div>
-              </div>
+                <div style={{ fontFamily:"var(--font-mono)",fontSize:12,color:"var(--cyan)",wordBreak:"break-all",lineHeight:1.6 }}>{val}</div>
+              </a>
             ))}
           </div>
+
+          {/* ── CONTACT FORM ── */}
           <div style={{ display:"flex",flexDirection:"column",gap:16,textAlign:"left" }}>
             {[["YOUR_NAME","text","Enter identifier..."],["YOUR_EMAIL","email","Enter contact address..."]].map(([label,type,ph]) => (
               <div key={label} style={{ display:"flex",flexDirection:"column",gap:6 }}>
