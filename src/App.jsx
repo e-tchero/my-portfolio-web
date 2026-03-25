@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 
+const SUPABASE_URL = "https://ydcrqsdvmqzfabaoyhjz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkY3Jxc2R2bXF6ZmFiYW95aGp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NzU3OTAsImV4cCI6MjA5MDA1MTc5MH0.9mTZgeSU9abS5IqhPHC5TOABldk4uE7IlMU1azYEGM8";
+
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
   :root {
@@ -65,9 +68,10 @@ const TERMINAL_LINES = [
 
 const CONTACT_CARDS = [
   { icon: "📧", label: "EMAIL",  val: "abdulhameedamin@hotmail.com", href: "mailto:abdulhameedamin@hotmail.com" },
-  { icon: "🐙", label: "GITHUB", val: "github.com/Gamer77nyh",        href: "https://github.com/Gamer77nyh" },
+  { icon: "🐙", label: "GITHUB", val: "github.com/Gamer77nyh",       href: "https://github.com/Gamer77nyh" },
 ];
 
+// ─── CURSOR ───────────────────────────────────────────────────────────────────
 function Cursor() {
   const curRef = useRef(null);
   const trailRef = useRef(null);
@@ -87,10 +91,21 @@ function Cursor() {
   );
 }
 
+// ─── CUBE ─────────────────────────────────────────────────────────────────────
 function Cube() {
   const faces = ["REACT","AI","BUILD","AUTO","CODE","HACK"];
-  const transforms = ["rotateY(0deg) translateZ(80px)","rotateY(90deg) translateZ(80px)","rotateY(180deg) translateZ(80px)","rotateY(270deg) translateZ(80px)","rotateX(90deg) translateZ(80px)","rotateX(-90deg) translateZ(80px)"];
-  const bgs = ["rgba(0,255,65,.05)","rgba(0,229,255,.05)","rgba(255,109,0,.05)","rgba(0,255,65,.03)","rgba(0,229,255,.03)","rgba(255,109,0,.03)"];
+  const transforms = [
+    "rotateY(0deg) translateZ(80px)",
+    "rotateY(90deg) translateZ(80px)",
+    "rotateY(180deg) translateZ(80px)",
+    "rotateY(270deg) translateZ(80px)",
+    "rotateX(90deg) translateZ(80px)",
+    "rotateX(-90deg) translateZ(80px)",
+  ];
+  const bgs = [
+    "rgba(0,255,65,.05)","rgba(0,229,255,.05)","rgba(255,109,0,.05)",
+    "rgba(0,255,65,.03)","rgba(0,229,255,.03)","rgba(255,109,0,.03)",
+  ];
   return (
     <div style={{ width:160,height:160,perspective:600,margin:"50px auto 0",animation:"fadeIn 1s 1.2s ease both",opacity:0 }}>
       <div style={{ width:"100%",height:"100%",position:"relative",transformStyle:"preserve-3d",animation:"spin 12s linear infinite" }}>
@@ -102,6 +117,7 @@ function Cube() {
   );
 }
 
+// ─── TYPING ROLE ──────────────────────────────────────────────────────────────
 function TypingRole() {
   const [text, setText] = useState("");
   const [ri, setRi] = useState(0);
@@ -130,12 +146,25 @@ function TypingRole() {
   );
 }
 
+// ─── RAIN ─────────────────────────────────────────────────────────────────────
 function Rain() {
   const chars = "01アイウエオカキABCDEFGHIJKLMN";
   return (
     <div style={{ position:"absolute",inset:0,overflow:"hidden",zIndex:0 }}>
       {Array.from({length:20},(_,i) => (
-        <div key={i} style={{ position:"absolute",top:"-100%",left:`${i*5.5}%`,width:20,fontFamily:"var(--font-mono)",fontSize:12+Math.random()*4,color:"var(--green)",opacity:.15,whiteSpace:"nowrap",lineHeight:1.4,animation:`rain-fall ${8+Math.random()*10}s linear ${-Math.random()*10}s infinite` }}>
+        <div key={i} style={{
+          position:"absolute",
+          top:"-100%",
+          left:`${i*5.5}%`,
+          width:20,
+          fontFamily:"var(--font-mono)",
+          fontSize:12+Math.random()*4,
+          color:"var(--green)",
+          opacity:.15,
+          whiteSpace:"nowrap",
+          lineHeight:1.4,
+          animation:`rain-fall ${8+Math.random()*10}s linear ${-Math.random()*10}s infinite`,
+        }}>
           {Array.from({length:30},(_,j) => <div key={j}>{chars[Math.floor(Math.random()*chars.length)]}</div>)}
         </div>
       ))}
@@ -143,6 +172,7 @@ function Rain() {
   );
 }
 
+// ─── TERMINAL ─────────────────────────────────────────────────────────────────
 function Terminal({ onClose }) {
   const bodyRef = useRef(null);
   const [lines, setLines] = useState([]);
@@ -177,6 +207,79 @@ function Terminal({ onClose }) {
   );
 }
 
+// ─── CONTACT FORM ─────────────────────────────────────────────────────────────
+function ContactForm() {
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState("idle");
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.email || !form.message) return;
+    setStatus("sending");
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/contact_messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Prefer": "return=minimal",
+        },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setStatus("success");
+        setForm({ name: "", email: "", message: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  const inputStyle = {
+    background:"var(--card)",
+    border:"1px solid var(--border)",
+    color:"#c8e6c9",
+    padding:"12px 16px",
+    fontFamily:"var(--font-mono)",
+    fontSize:13,
+    outline:"none",
+    width:"100%",
+  };
+  const labelStyle = { fontFamily:"var(--font-mono)",fontSize:10,color:"var(--orange)",letterSpacing:3 };
+  const borderColor = status === "success" ? "var(--cyan)" : status === "error" ? "var(--orange)" : "var(--green)";
+  const btnColor    = status === "success" ? "var(--cyan)" : status === "error" ? "var(--orange)" : "var(--green)";
+  const btnText     = status === "sending" ? "TRANSMITTING..." : status === "success" ? "MESSAGE_RECEIVED ✓" : status === "error" ? "TRANSMISSION_FAILED — RETRY" : "TRANSMIT_MESSAGE";
+
+  return (
+    <div style={{ display:"flex",flexDirection:"column",gap:16,textAlign:"left" }}>
+      <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+        <label style={labelStyle}>YOUR_NAME</label>
+        <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Enter identifier..." style={inputStyle} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
+      </div>
+      <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+        <label style={labelStyle}>YOUR_EMAIL</label>
+        <input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="Enter contact address..." style={inputStyle} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
+      </div>
+      <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+        <label style={labelStyle}>MESSAGE</label>
+        <textarea rows={4} value={form.message} onChange={e=>setForm({...form,message:e.target.value})} placeholder="Describe your mission..." style={{...inputStyle,resize:"none"}} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
+      </div>
+      <button
+        onClick={handleSubmit}
+        disabled={status === "sending"}
+        style={{ fontFamily:"var(--font-hud)",fontSize:13,padding:14,background:"transparent",border:`1px solid ${borderColor}`,color:btnColor,cursor:"pointer",letterSpacing:4,transition:"all .25s",marginTop:8 }}
+        onMouseEnter={e=>{ if(status==="idle"){e.currentTarget.style.background="var(--green)";e.currentTarget.style.color="#000";} }}
+        onMouseLeave={e=>{ if(status==="idle"){e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--green)";} }}
+      >
+        {btnText}
+      </button>
+    </div>
+  );
+}
+
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function Portfolio() {
   const [termOpen, setTermOpen] = useState(false);
   const tagColors = { ai:"#00e5ff", auto:"#ff6d00", web:"#00ff41", tools:"#e040fb" };
@@ -238,9 +341,13 @@ export default function Portfolio() {
           <h2 style={{ fontFamily:"var(--font-hud)",fontSize:"clamp(24px,4vw,40px)",fontWeight:700,letterSpacing:4,background:"linear-gradient(135deg,#fff,#c8e6c9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>WHO AM I</h2>
           <div style={{ width:80,height:2,background:"linear-gradient(90deg,var(--orange),var(--cyan))",margin:"16px auto 0" }} />
         </div>
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,maxWidth:900,margin:"0 auto",alignItems:"center" }} className="about-grid">
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,maxWidth:900,margin:"0 auto",alignItems:"center" }}>
           <div>
-            {["I'm a <software engineer> and <AI builder> based in Abuja, Nigeria — operating at the intersection of automation, intelligence, and systems design.","I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.","Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software — fast."].map((p,i) => (
+            {[
+              "I'm a <software engineer> and <AI builder> based in Abuja, Nigeria — operating at the intersection of automation, intelligence, and systems design.",
+              "I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.",
+              "Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software — fast.",
+            ].map((p,i) => (
               <p key={i} className="reveal" style={{ fontSize:16,lineHeight:1.9,color:"#a5d6a7",marginBottom:16,fontWeight:300 }}
                 dangerouslySetInnerHTML={{ __html: p.replace(/<([^>]+)>/g, '<span style="color:var(--cyan);font-family:var(--font-mono);font-size:14px">$1</span>') }} />
             ))}
@@ -288,12 +395,15 @@ export default function Portfolio() {
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:24,maxWidth:1100,margin:"0 auto" }}>
           {PROJECTS.map((p,i) => (
             <div key={i} className="reveal" style={{ background:"var(--card)",border:"1px solid var(--border)",padding:28,position:"relative",overflow:"hidden",transition:"all .35s",cursor:"none" }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4130";e.currentTarget.style.transform="translateY(-6px)";e.currentTarget.style.boxShadow="0 20px 40px rgba(0,0,0,.6),0 0 30px rgba(0,255,65,.05)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4130";e.currentTarget.style.transform="translateY(-6px)";e.currentTarget.style.boxShadow="0 20px 40px rgba(0,0,0,.6),0 0 30px rgba(0,255,65,.05)";}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
               <div style={{ fontFamily:"var(--font-hud)",fontSize:11,color:"var(--orange)",letterSpacing:3,marginBottom:12,opacity:.8 }}>PROJECT_{p.id}</div>
               <div style={{ fontFamily:"var(--font-hud)",fontSize:17,fontWeight:700,letterSpacing:2,color:"#e8f5e9",marginBottom:10 }}>{p.title}</div>
               <div style={{ fontSize:14,color:"#81c784",lineHeight:1.7,marginBottom:20,fontWeight:300 }}>{p.desc}</div>
               <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:20 }}>
-                {p.tags.map(([label,type],j) => <span key={j} style={{ fontFamily:"var(--font-mono)",fontSize:9,padding:"3px 10px",letterSpacing:1.5,border:`1px solid ${tagColors[type]}40`,color:tagColors[type],background:`${tagColors[type]}10` }}>{label}</span>)}
+                {p.tags.map(([label,type],j) => (
+                  <span key={j} style={{ fontFamily:"var(--font-mono)",fontSize:9,padding:"3px 10px",letterSpacing:1.5,border:`1px solid ${tagColors[type]}40`,color:tagColors[type],background:`${tagColors[type]}10` }}>{label}</span>
+                ))}
               </div>
               <a href="#" style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"var(--green)",letterSpacing:2,textDecoration:"none" }}>EXPLORE →</a>
             </div>
@@ -311,24 +421,16 @@ export default function Portfolio() {
         <div style={{ maxWidth:600,margin:"0 auto",textAlign:"center" }}>
           <p style={{ fontSize:16,color:"#81c784",lineHeight:1.9,marginBottom:40,fontWeight:300 }}>Got a project? Want to collaborate? Ready to automate something? Let's talk.</p>
 
-          {/* ── CONTACT CARDS ── */}
+          {/* CONTACT CARDS */}
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:40 }}>
             {CONTACT_CARDS.map(({ icon, label, val, href }, i) => (
-              
+              <a
                 key={i}
                 href={href}
                 target={href.startsWith("mailto") ? "_self" : "_blank"}
                 rel="noopener noreferrer"
                 className="reveal"
-                style={{
-                  background:"var(--card)",
-                  border:"1px solid var(--border)",
-                  padding:20,
-                  transition:"all .3s",
-                  textDecoration:"none",
-                  display:"block",
-                  cursor:"pointer",
-                }}
+                style={{ background:"var(--card)",border:"1px solid var(--border)",padding:20,transition:"all .3s",textDecoration:"none",display:"block",cursor:"pointer" }}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4140";e.currentTarget.style.transform="translateY(-4px)";}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";}}
               >
@@ -339,21 +441,8 @@ export default function Portfolio() {
             ))}
           </div>
 
-          {/* ── CONTACT FORM ── */}
-          <div style={{ display:"flex",flexDirection:"column",gap:16,textAlign:"left" }}>
-            {[["YOUR_NAME","text","Enter identifier..."],["YOUR_EMAIL","email","Enter contact address..."]].map(([label,type,ph]) => (
-              <div key={label} style={{ display:"flex",flexDirection:"column",gap:6 }}>
-                <label style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"var(--orange)",letterSpacing:3 }}>{label}</label>
-                <input type={type} placeholder={ph} style={{ background:"var(--card)",border:"1px solid var(--border)",color:"#c8e6c9",padding:"12px 16px",fontFamily:"var(--font-mono)",fontSize:13,outline:"none" }} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
-              </div>
-            ))}
-            <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
-              <label style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"var(--orange)",letterSpacing:3 }}>MESSAGE</label>
-              <textarea rows={4} placeholder="Describe your mission..." style={{ background:"var(--card)",border:"1px solid var(--border)",color:"#c8e6c9",padding:"12px 16px",fontFamily:"var(--font-mono)",fontSize:13,outline:"none",resize:"none" }} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
-            </div>
-            <button style={{ fontFamily:"var(--font-hud)",fontSize:13,padding:14,background:"transparent",border:"1px solid var(--green)",color:"var(--green)",cursor:"none",letterSpacing:4,transition:"all .25s",marginTop:8 }}
-              onMouseEnter={e=>{e.target.style.background="var(--green)";e.target.style.color="#000";e.target.style.boxShadow="var(--glow-g)";}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.color="var(--green)";e.target.style.boxShadow="none";}}>TRANSMIT_MESSAGE</button>
-          </div>
+          {/* CONTACT FORM */}
+          <ContactForm />
         </div>
       </section>
 
