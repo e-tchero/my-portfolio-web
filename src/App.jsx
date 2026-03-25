@@ -240,7 +240,7 @@ export default function Portfolio() {
         </div>
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,maxWidth:900,margin:"0 auto",alignItems:"center" }} className="about-grid">
           <div>
-            {["I'm a <software engineer> and <AI builder> based in Abuja, Nigeria operating at the intersection of automation, intelligence, and systems design.","I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.","Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software — fast."].map((p,i) => (
+            {["I'm a <software engineer> and <AI builder> based in Abuja, Nigeria operating at the intersection of automation, intelligence, and systems design.","I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.","Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software fast."].map((p,i) => (
               <p key={i} className="reveal" style={{ fontSize:16,lineHeight:1.9,color:"#a5d6a7",marginBottom:16,fontWeight:300 }}
                 dangerouslySetInnerHTML={{ __html: p.replace(/<([^>]+)>/g, '<span style="color:var(--cyan);font-family:var(--font-mono);font-size:14px">$1</span>') }} />
             ))}
