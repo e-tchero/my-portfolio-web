@@ -209,12 +209,23 @@ function Terminal({ onClose }) {
 
 // ─── CONTACT FORM ─────────────────────────────────────────────────────────────
 function ContactForm() {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", message: "", company: "" });
   const [status, setStatus] = useState("idle");
+  const startTime = useRef(Date.now());
 
   const handleSubmit = async () => {
+    // 🍯 Honeypot check — bots fill hidden fields, humans don't
+    if (form.company) return;
+
+    // ⏱️ Speed check — bots submit instantly
+    if (Date.now() - startTime.current < 3000) {
+      setStatus("error");
+      return;
+    }
+
     if (!form.name || !form.email || !form.message) return;
     setStatus("sending");
+
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/contact_messages`, {
         method: "POST",
@@ -224,11 +235,18 @@ function ContactForm() {
           "Authorization": `Bearer ${SUPABASE_KEY}`,
           "Prefer": "return=minimal",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          message: form.message,
+          user_agent: navigator.userAgent,
+          submitted_at: Date.now(),
+        }),
       });
       if (res.ok) {
         setStatus("success");
-        setForm({ name: "", email: "", message: "" });
+        setForm({ name: "", email: "", message: "", company: "" });
+        startTime.current = Date.now();
       } else {
         setStatus("error");
       }
@@ -238,47 +256,78 @@ function ContactForm() {
   };
 
   const inputStyle = {
-    background:"var(--card)",
-    border:"1px solid var(--border)",
-    color:"#c8e6c9",
-    padding:"12px 16px",
-    fontFamily:"var(--font-mono)",
-    fontSize:13,
-    outline:"none",
-    width:"100%",
+    background: "var(--card)", border: "1px solid var(--border)",
+    color: "#c8e6c9", padding: "12px 16px", fontFamily: "var(--font-mono)",
+    fontSize: 13, outline: "none", width: "100%",
   };
-  const labelStyle = { fontFamily:"var(--font-mono)",fontSize:10,color:"var(--orange)",letterSpacing:3 };
+  const labelStyle = { fontFamily:"var(--font-mono)", fontSize:10, color:"var(--orange)", letterSpacing:3 };
   const borderColor = status === "success" ? "var(--cyan)" : status === "error" ? "var(--orange)" : "var(--green)";
   const btnColor    = status === "success" ? "var(--cyan)" : status === "error" ? "var(--orange)" : "var(--green)";
   const btnText     = status === "sending" ? "TRANSMITTING..." : status === "success" ? "MESSAGE_RECEIVED ✓" : status === "error" ? "TRANSMISSION_FAILED — RETRY" : "TRANSMIT_MESSAGE";
 
   return (
-    <div style={{ display:"flex",flexDirection:"column",gap:16,textAlign:"left" }}>
-      <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:16, textAlign:"left" }}>
+
+      {/* 🍯 HONEYPOT — hidden from humans, bots fill it */}
+      <input
+        type="text"
+        value={form.company}
+        onChange={e => setForm({...form, company: e.target.value})}
+        style={{ display:"none" }}
+        tabIndex={-1}
+        autoComplete="off"
+      />
+
+      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
         <label style={labelStyle}>YOUR_NAME</label>
-        <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Enter identifier..." style={inputStyle} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
+        <input
+          value={form.name}
+          onChange={e => setForm({...form, name: e.target.value})}
+          placeholder="Enter identifier..."
+          style={inputStyle}
+          onFocus={e => e.target.style.borderColor="#00ff4140"}
+          onBlur={e => e.target.style.borderColor="var(--border)"}
+        />
       </div>
-      <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
         <label style={labelStyle}>YOUR_EMAIL</label>
-        <input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="Enter contact address..." style={inputStyle} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
+        <input
+          type="email"
+          value={form.email}
+          onChange={e => setForm({...form, email: e.target.value})}
+          placeholder="Enter contact address..."
+          style={inputStyle}
+          onFocus={e => e.target.style.borderColor="#00ff4140"}
+          onBlur={e => e.target.style.borderColor="var(--border)"}
+        />
       </div>
-      <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+
+      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
         <label style={labelStyle}>MESSAGE</label>
-        <textarea rows={4} value={form.message} onChange={e=>setForm({...form,message:e.target.value})} placeholder="Describe your mission..." style={{...inputStyle,resize:"none"}} onFocus={e=>e.target.style.borderColor="#00ff4140"} onBlur={e=>e.target.style.borderColor="var(--border)"} />
+        <textarea
+          rows={4}
+          value={form.message}
+          onChange={e => setForm({...form, message: e.target.value})}
+          placeholder="Describe your mission..."
+          style={{...inputStyle, resize:"none"}}
+          onFocus={e => e.target.style.borderColor="#00ff4140"}
+          onBlur={e => e.target.style.borderColor="var(--border)"}
+        />
       </div>
+
       <button
         onClick={handleSubmit}
         disabled={status === "sending"}
-        style={{ fontFamily:"var(--font-hud)",fontSize:13,padding:14,background:"transparent",border:`1px solid ${borderColor}`,color:btnColor,cursor:"pointer",letterSpacing:4,transition:"all .25s",marginTop:8 }}
-        onMouseEnter={e=>{ if(status==="idle"){e.currentTarget.style.background="var(--green)";e.currentTarget.style.color="#000";} }}
-        onMouseLeave={e=>{ if(status==="idle"){e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--green)";} }}
+        style={{ fontFamily:"var(--font-hud)", fontSize:13, padding:14, background:"transparent", border:`1px solid ${borderColor}`, color:btnColor, cursor:"pointer", letterSpacing:4, transition:"all .25s", marginTop:8 }}
+        onMouseEnter={e => { if(status==="idle"){e.currentTarget.style.background="var(--green)";e.currentTarget.style.color="#000";}}}
+        onMouseLeave={e => { if(status==="idle"){e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--green)";}}}
       >
         {btnText}
       </button>
     </div>
   );
 }
-
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function Portfolio() {
   const [termOpen, setTermOpen] = useState(false);
