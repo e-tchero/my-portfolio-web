@@ -38,10 +38,10 @@ const globalStyles = `
 const ROLES = ["AI Builder", "Software Engineer", "Automation Expert", "Ethical Hacker", "SaaS Architect"];
 
 const PROJECTS = [
-  { id: "001", title: "AI DEV TEAM ORCHESTRATOR", desc: "Multi-agent AI system using local Ollama models. Routes tasks to specialized agents — planner, coder, reviewer — running entirely on-device.", tags: [["AI","ai"],["AUTOMATION","auto"],["TOOLS","tools"]] },
+  { id: "001", title: "AI DEV TEAM ORCHESTRATOR", desc: "Multi-agent AI system using local Ollama models. Routes tasks to specialized agents planner, coder, reviewer running entirely on-device.", tags: [["AI","ai"],["AUTOMATION","auto"],["TOOLS","tools"]] },
   { id: "002", title: "ONE-SCRIPT SALES ENGINE", desc: "End-to-end lead automation pipeline. One script handles outreach, follow-ups, and CRM updates — zero manual work in the funnel.", tags: [["AUTOMATION","auto"],["TOOLS","tools"]] },
   { id: "003", title: "TERMINAL AI SYSTEM", desc: "Local AI assistant running via terminal. Fully offline, built on Ollama. Responds to commands, reads files, and executes scripted workflows.", tags: [["AI","ai"],["TOOLS","tools"]] },
-  { id: "004", title: "3D WEB EXPERIMENTS", desc: "Interactive 3D UI concepts built with Spline. CSS-driven animations and spatial interfaces — exploring the future of the web, lightweight.", tags: [["WEB","web"],["CREATIVE","ai"]] },
+  { id: "004", title: "3D WEB EXPERIMENTS", desc: "Interactive 3D UI concepts built with Spline. CSS-driven animations and spatial interfaces exploring the future of the web, lightweight.", tags: [["WEB","web"],["CREATIVE","ai"]] },
 ];
 
 const SKILLS = [
@@ -161,7 +161,7 @@ function Terminal({ onClose }) {
           <div style={{ display:"flex",gap:8 }}>
             {["#ff5f57","#febc2e","#28c840"].map((c,i) => <span key={i} style={{ width:12,height:12,borderRadius:"50%",background:c,display:"block" }} />)}
           </div>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"#4caf50",letterSpacing:3 }}>ABDULHAMEED@ETCHERO:~</span>
+          <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"#4caf50",letterSpacing:3 }}>abdulhameedamin@hotmail:~</span>
           <button onClick={onClose} style={{ background:"none",border:"none",color:"#4caf50",fontFamily:"var(--font-mono)",fontSize:16,cursor:"pointer" }}>✕</button>
         </div>
         <div ref={bodyRef} style={{ padding:24,fontFamily:"var(--font-mono)",fontSize:13,lineHeight:2,maxHeight:400,overflowY:"auto" }}>
@@ -311,7 +311,7 @@ export default function Portfolio() {
         <div style={{ maxWidth:600,margin:"0 auto",textAlign:"center" }}>
           <p style={{ fontSize:16,color:"#81c784",lineHeight:1.9,marginBottom:40,fontWeight:300 }}>Got a project? Want to collaborate? Ready to automate something? Let's talk.</p>
           <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:16,marginBottom:40 }}>
-            {[["📧","EMAIL","abdulhameed@etchero.com"],["🐙","GITHUB","github.com/ethical"],["💼","LINKEDIN","in/abdulhameedamin"]].map(([icon,label,val],i) => (
+            {[["📧","EMAIL","abdulhameedamin@hotmail.com"],["🐙","GITHUB","https://github.com/Gamer77nyh"],["💼","LINKEDIN","in/abdulhameedamin"]].map(([icon,label,val],i) => (
               <div key={i} className="reveal" style={{ background:"var(--card)",border:"1px solid var(--border)",padding:20,transition:"all .3s",cursor:"none" }}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4140";e.currentTarget.style.transform="translateY(-4px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";}}>
                 <div style={{ fontSize:22,marginBottom:8 }}>{icon}</div>
