@@ -213,48 +213,52 @@ function ContactForm() {
   const [status, setStatus] = useState("idle");
   const startTime = useRef(Date.now());
 
-  const handleSubmit = async () => {
-    // 🍯 Honeypot check — bots fill hidden fields, humans don't
-    if (form.company) return;
+ const handleSubmit = async () => {
+  if (form.company) return; // honeypot
+  if (Date.now() - startTime.current < 3000) { setStatus("error"); return; }
+  if (!form.name || !form.email || !form.message) return;
+  setStatus("sending");
 
-    // ⏱️ Speed check — bots submit instantly
-    if (Date.now() - startTime.current < 3000) {
+  try {
+    // Step 1 — Save to Supabase database
+    const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/contact_messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Prefer": "return=minimal",
+      },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        message: form.message,
+        user_agent: navigator.userAgent,
+        submitted_at: Date.now(),
+      }),
+    });
+
+    // Step 2 — Trigger auto-emails via Edge Function
+    await fetch(`${SUPABASE_URL}/functions/v1/send-contact-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY,
+      },
+      body: JSON.stringify({ name: form.name, email: form.email, message: form.message }),
+    });
+
+    if (dbRes.ok) {
+      setStatus("success");
+      setForm({ name: "", email: "", message: "", company: "" });
+      startTime.current = Date.now();
+    } else {
       setStatus("error");
-      return;
     }
-
-    if (!form.name || !form.email || !form.message) return;
-    setStatus("sending");
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/contact_messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Prefer": "return=minimal",
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          message: form.message,
-          user_agent: navigator.userAgent,
-          submitted_at: Date.now(),
-        }),
-      });
-      if (res.ok) {
-        setStatus("success");
-        setForm({ name: "", email: "", message: "", company: "" });
-        startTime.current = Date.now();
-      } else {
-        setStatus("error");
-      }
-    } catch {
-      setStatus("error");
-    }
-  };
-
+  } catch {
+    setStatus("error");
+  }
+};
   const inputStyle = {
     background: "var(--card)", border: "1px solid var(--border)",
     color: "#c8e6c9", padding: "12px 16px", fontFamily: "var(--font-mono)",
