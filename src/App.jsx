@@ -382,7 +382,7 @@ export default function Portfolio() {
           <Cube />
         </div>
         <div style={{ position:"absolute",bottom:30,left:"50%",transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:8,animation:"fadeIn 1s 2s ease both",opacity:0 }}>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"#4caf50",letterSpacing:3 }}>SCROLL</span>
+          <span style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"#4caf50",letterSpacing:3 }}></span>
           <div style={{ width:1,height:40,background:"linear-gradient(180deg,var(--green),transparent)",animation:"pulse-line 2s ease-in-out infinite" }} />
         </div>
       </section>
