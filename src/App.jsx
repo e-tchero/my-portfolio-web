@@ -147,25 +147,35 @@ function TypingRole() {
 }
 
 // ─── RAIN ─────────────────────────────────────────────────────────────────────
+const RAIN_CHARS = "01アイウエオカキABCDEFGHIJKLMN";
+// Generated once at module load so rendering stays pure.
+const RAIN_DROPS = Array.from({ length: 20 }, (_, i) => ({
+  id: i,
+  left: `${i * 5.5}%`,
+  fontSize: 12 + Math.random() * 4,
+  duration: 8 + Math.random() * 10,
+  delay: -Math.random() * 10,
+  letters: Array.from({ length: 30 }, () => RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]),
+}));
+
 function Rain() {
-  const chars = "01アイウエオカキABCDEFGHIJKLMN";
   return (
     <div style={{ position:"absolute",inset:0,overflow:"hidden",zIndex:0 }}>
-      {Array.from({length:20},(_,i) => (
-        <div key={i} style={{
+      {RAIN_DROPS.map((drop) => (
+        <div key={drop.id} style={{
           position:"absolute",
           top:"-100%",
-          left:`${i*5.5}%`,
+          left:drop.left,
           width:20,
           fontFamily:"var(--font-mono)",
-          fontSize:12+Math.random()*4,
+          fontSize:drop.fontSize,
           color:"var(--green)",
           opacity:.15,
           whiteSpace:"nowrap",
           lineHeight:1.4,
-          animation:`rain-fall ${8+Math.random()*10}s linear ${-Math.random()*10}s infinite`,
+          animation:`rain-fall ${drop.duration}s linear ${drop.delay}s infinite`,
         }}>
-          {Array.from({length:30},(_,j) => <div key={j}>{chars[Math.floor(Math.random()*chars.length)]}</div>)}
+          {drop.letters.map((c, j) => <div key={j}>{c}</div>)}
         </div>
       ))}
     </div>
@@ -211,7 +221,10 @@ function Terminal({ onClose }) {
 function ContactForm() {
   const [form, setForm] = useState({ name: "", email: "", message: "", company: "" });
   const [status, setStatus] = useState("idle");
-  const startTime = useRef(Date.now());
+  const startTime = useRef(0);
+  useEffect(() => {
+    startTime.current = Date.now();
+  }, []);
 
  const handleSubmit = async () => {
   if (form.company) return; // honeypot
@@ -401,8 +414,15 @@ export default function Portfolio() {
               "I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.",
               "Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software — fast.",
             ].map((p,i) => (
-              <p key={i} className="reveal" style={{ fontSize:16,lineHeight:1.9,color:"#a5d6a7",marginBottom:16,fontWeight:300 }}
-                dangerouslySetInnerHTML={{ __html: p.replace(/<([^>]+)>/g, '<span style="color:var(--cyan);font-family:var(--font-mono);font-size:14px">$1</span>') }} />
+              <p key={i} className="reveal" style={{ fontSize:16,lineHeight:1.9,color:"#a5d6a7",marginBottom:16,fontWeight:300 }}>
+                {p.split(/<([^>]+)>/g).map((part, j) =>
+                  j % 2 === 1 ? (
+                    <span key={j} style={{ color:"var(--cyan)", fontFamily:"var(--font-mono)", fontSize:14 }}>{part}</span>
+                  ) : (
+                    part
+                  )
+                )}
+              </p>
             ))}
           </div>
           <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
