@@ -1,530 +1,370 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-const SUPABASE_URL = "https://ydcrqsdvmqzfabaoyhjz.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkY3Jxc2R2bXF6ZmFiYW95aGp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NzU3OTAsImV4cCI6MjA5MDA1MTc5MH0.9mTZgeSU9abS5IqhPHC5TOABldk4uE7IlMU1azYEGM8";
-
-const globalStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
-  :root {
-    --bg: #020c04; --bg2: #050f06; --green: #00ff41; --cyan: #00e5ff;
-    --orange: #ff6d00; --card: #071209; --border: #0d2b10;
-    --glow-g: 0 0 8px #00ff4180, 0 0 20px #00ff4130;
-    --glow-c: 0 0 8px #00e5ff80, 0 0 20px #00e5ff30;
-    --glow-o: 0 0 8px #ff6d0080, 0 0 20px #ff6d0030;
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-hud: 'Orbitron', sans-serif;
-    --font-body: 'Rajdhani', sans-serif;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body { background: var(--bg); color: #c8e6c9; font-family: var(--font-body); overflow-x: hidden; cursor: none; }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,.015) 2px,rgba(0,255,65,.015) 4px);
-    pointer-events: none; z-index: 1000;
-  }
-  body::after {
-    content: ''; position: fixed; inset: 0;
-    background-image: linear-gradient(rgba(0,255,65,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,.03) 1px,transparent 1px);
-    background-size: 40px 40px; pointer-events: none; z-index: 0;
-  }
-  @keyframes spin { from { transform: rotateX(0) rotateY(0); } to { transform: rotateX(360deg) rotateY(360deg); } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes blink { 50% { opacity: 0; } }
-  @keyframes expand { to { transform: scaleX(1); } }
-  @keyframes rain-fall { 0% { transform: translateY(-100%); } 100% { transform: translateY(200vh); } }
-  @keyframes pulse-line { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
-`;
-
-const ROLES = ["AI Builder", "Software Engineer", "Automation Expert", "Ethical Hacker", "SaaS Architect"];
-
-const PROJECTS = [
-  { id: "001", title: "AI DEV TEAM ORCHESTRATOR", desc: "Multi-agent AI system using local Ollama models. Routes tasks to specialized agents — planner, coder, reviewer — running entirely on-device.", tags: [["AI","ai"],["AUTOMATION","auto"],["TOOLS","tools"]] },
-  { id: "002", title: "ONE-SCRIPT SALES ENGINE", desc: "End-to-end lead automation pipeline. One script handles outreach, follow-ups, and CRM updates — zero manual work in the funnel.", tags: [["AUTOMATION","auto"],["TOOLS","tools"]] },
-  { id: "003", title: "TERMINAL AI SYSTEM", desc: "Local AI assistant running via terminal. Fully offline, built on Ollama. Responds to commands, reads files, and executes scripted workflows.", tags: [["AI","ai"],["TOOLS","tools"]] },
-  { id: "004", title: "3D WEB EXPERIMENTS", desc: "Interactive 3D UI concepts built with Spline. CSS-driven animations and spatial interfaces — exploring the future of the web, lightweight.", tags: [["WEB","web"],["CREATIVE","ai"]] },
-];
-
-const SKILLS = [
-  { icon: "🤖", name: "AI & AUTOMATION", tags: ["Ollama","LangChain","Multi-Agent","Prompt Eng.","Claude API"] },
-  { icon: "⚡", name: "FRONTEND", tags: ["React","Tailwind","CSS Animations","HTML5","JavaScript"] },
-  { icon: "🔧", name: "BACKEND & TOOLS", tags: ["Python","Node.js","REST APIs","Bash","Git"] },
-  { icon: "🔐", name: "ETHICAL HACKING", tags: ["Recon","OSINT","Network Analysis","Kali Linux","CTF"] },
-];
-
-const TERMINAL_LINES = [
-  { cls: "comment", text: "# ABDULHAMEED AMIN — SYSTEM PROFILE" },
-  { cls: "prompt",  text: "$ whoami" },
-  { cls: "out",     text: "> abdulhameed :: ai-builder :: software-engineer :: ethical-hacker" },
-  { cls: "prompt",  text: "$ ls projects/" },
-  { cls: "out",     text: "> ai-dev-team-orchestrator/   one-script-sales-engine/" },
-  { cls: "out",     text: "> terminal-ai-system/         3d-web-experiments/" },
-  { cls: "prompt",  text: "$ cat mission.txt" },
-  { cls: "out",     text: "> Help people buy back their time through AI & automation." },
-  { cls: "prompt",  text: "$ status --all" },
-  { cls: "out",     text: "> [✓] AI Systems: ONLINE  [✓] Automation: RUNNING  [✓] Hacking: ACTIVE" },
-  { cls: "prompt",  text: "$ _" },
-];
-
-const CONTACT_CARDS = [
-  { icon: "📧", label: "EMAIL",  val: "abdulhameedamin@hotmail.com", href: "mailto:abdulhameedamin@hotmail.com" },
-  { icon: "🐙", label: "GITHUB", val: "github.com/Gamer77nyh",       href: "https://github.com/Gamer77nyh" },
-];
-
-// ─── CURSOR ───────────────────────────────────────────────────────────────────
-function Cursor() {
-  const curRef = useRef(null);
-  const trailRef = useRef(null);
-  useEffect(() => {
-    const move = e => {
-      if (curRef.current) { curRef.current.style.left = e.clientX + "px"; curRef.current.style.top = e.clientY + "px"; }
-      setTimeout(() => { if (trailRef.current) { trailRef.current.style.left = e.clientX + "px"; trailRef.current.style.top = e.clientY + "px"; } }, 80);
-    };
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
-  }, []);
-  return (
-    <>
-      <div ref={curRef} style={{ position:"fixed",width:12,height:12,border:"2px solid var(--green)",borderRadius:"50%",pointerEvents:"none",zIndex:9999,transform:"translate(-50%,-50%)",boxShadow:"var(--glow-g)",transition:"transform .1s" }} />
-      <div ref={trailRef} style={{ position:"fixed",width:30,height:30,border:"1px solid #00ff4140",borderRadius:"50%",pointerEvents:"none",zIndex:9998,transform:"translate(-50%,-50%)",transition:"left .12s, top .12s" }} />
-    </>
-  );
-}
-
-// ─── CUBE ─────────────────────────────────────────────────────────────────────
-function Cube() {
-  const faces = ["REACT","AI","BUILD","AUTO","CODE","HACK"];
-  const transforms = [
-    "rotateY(0deg) translateZ(80px)",
-    "rotateY(90deg) translateZ(80px)",
-    "rotateY(180deg) translateZ(80px)",
-    "rotateY(270deg) translateZ(80px)",
-    "rotateX(90deg) translateZ(80px)",
-    "rotateX(-90deg) translateZ(80px)",
-  ];
-  const bgs = [
-    "rgba(0,255,65,.05)","rgba(0,229,255,.05)","rgba(255,109,0,.05)",
-    "rgba(0,255,65,.03)","rgba(0,229,255,.03)","rgba(255,109,0,.03)",
-  ];
-  return (
-    <div style={{ width:160,height:160,perspective:600,margin:"50px auto 0",animation:"fadeIn 1s 1.2s ease both",opacity:0 }}>
-      <div style={{ width:"100%",height:"100%",position:"relative",transformStyle:"preserve-3d",animation:"spin 12s linear infinite" }}>
-        {faces.map((f,i) => (
-          <div key={i} style={{ position:"absolute",width:"100%",height:"100%",border:"1px solid #00ff4160",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--font-hud)",fontSize:10,letterSpacing:2,color:"#00ff4180",transform:transforms[i],background:bgs[i] }}>{f}</div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── TYPING ROLE ──────────────────────────────────────────────────────────────
-function TypingRole() {
-  const [text, setText] = useState("");
-  const [ri, setRi] = useState(0);
-  const [ci, setCi] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-  useEffect(() => {
-    const word = ROLES[ri];
-    const delay = deleting ? 60 : (ci === word.length ? 1800 : 100);
-    const t = setTimeout(() => {
-      if (!deleting) {
-        setText(word.slice(0, ci + 1));
-        if (ci + 1 === word.length) setDeleting(true);
-        else setCi(c => c + 1);
-      } else {
-        setText(word.slice(0, ci - 1));
-        if (ci - 1 === 0) { setDeleting(false); setRi(r => (r + 1) % ROLES.length); setCi(0); }
-        else setCi(c => c - 1);
-      }
-    }, delay);
-    return () => clearTimeout(t);
-  }, [text, ri, ci, deleting]);
-  return (
-    <div style={{ fontFamily:"var(--font-mono)",fontSize:"clamp(14px,2.5vw,20px)",color:"var(--cyan)",textShadow:"var(--glow-c)",minHeight:28,animation:"fadeIn 1s .6s ease both",opacity:0 }}>
-      {text}<span style={{ display:"inline-block",width:2,height:"1em",background:"var(--cyan)",marginLeft:2,animation:"blink .7s step-end infinite",verticalAlign:"middle" }} />
-    </div>
-  );
-}
-
-// ─── RAIN ─────────────────────────────────────────────────────────────────────
-const RAIN_CHARS = "01アイウエオカキABCDEFGHIJKLMN";
-// Generated once at module load so rendering stays pure.
-const RAIN_DROPS = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  left: `${i * 5.5}%`,
-  fontSize: 12 + Math.random() * 4,
-  duration: 8 + Math.random() * 10,
-  delay: -Math.random() * 10,
-  letters: Array.from({ length: 30 }, () => RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]),
-}));
-
-function Rain() {
-  return (
-    <div style={{ position:"absolute",inset:0,overflow:"hidden",zIndex:0 }}>
-      {RAIN_DROPS.map((drop) => (
-        <div key={drop.id} style={{
-          position:"absolute",
-          top:"-100%",
-          left:drop.left,
-          width:20,
-          fontFamily:"var(--font-mono)",
-          fontSize:drop.fontSize,
-          color:"var(--green)",
-          opacity:.15,
-          whiteSpace:"nowrap",
-          lineHeight:1.4,
-          animation:`rain-fall ${drop.duration}s linear ${drop.delay}s infinite`,
-        }}>
-          {drop.letters.map((c, j) => <div key={j}>{c}</div>)}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── TERMINAL ─────────────────────────────────────────────────────────────────
-function Terminal({ onClose }) {
-  const bodyRef = useRef(null);
-  const [lines, setLines] = useState([]);
-  useEffect(() => {
-    TERMINAL_LINES.forEach((l, i) => {
-      setTimeout(() => {
-        setLines(prev => [...prev, l]);
-        if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-      }, i * 130);
-    });
-  }, []);
-  const colorMap = { comment:"#2e7d32", prompt:"var(--cyan)", out:"#69f0ae" };
-  return (
-    <div onClick={e => e.target === e.currentTarget && onClose()} style={{ position:"fixed",inset:0,background:"rgba(0,0,0,.95)",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center" }}>
-      <div style={{ width:"min(700px,90vw)",background:"#020c04",border:"1px solid #00ff4150",overflow:"hidden",boxShadow:"0 0 60px rgba(0,255,65,.15)" }}>
-        <div style={{ background:"#0a1a0b",padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #0d2b10" }}>
-          <div style={{ display:"flex",gap:8 }}>
-            {["#ff5f57","#febc2e","#28c840"].map((c,i) => <span key={i} style={{ width:12,height:12,borderRadius:"50%",background:c,display:"block" }} />)}
-          </div>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"#4caf50",letterSpacing:3 }}>abdulhameedamin@hotmail:~</span>
-          <button onClick={onClose} style={{ background:"none",border:"none",color:"#4caf50",fontFamily:"var(--font-mono)",fontSize:16,cursor:"pointer" }}>✕</button>
-        </div>
-        <div ref={bodyRef} style={{ padding:24,fontFamily:"var(--font-mono)",fontSize:13,lineHeight:2,maxHeight:400,overflowY:"auto" }}>
-          {lines.map((l,i) => (
-            <div key={i} style={{ color:colorMap[l.cls],animation:"fadeIn .3s ease both" }}>
-              {l.text}{i===lines.length-1 && <span style={{ display:"inline-block",width:8,height:13,background:"var(--green)",animation:"blink .7s step-end infinite",verticalAlign:"middle" }} />}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── CONTACT FORM ─────────────────────────────────────────────────────────────
-function ContactForm() {
-  const [form, setForm] = useState({ name: "", email: "", message: "", company: "" });
-  const [status, setStatus] = useState("idle");
-  const startTime = useRef(0);
-  useEffect(() => {
-    startTime.current = Date.now();
-  }, []);
-
- const handleSubmit = async () => {
-  if (form.company) return; // honeypot
-  if (Date.now() - startTime.current < 3000) { setStatus("error"); return; }
-  if (!form.name || !form.email || !form.message) return;
-  setStatus("sending");
-
-  try {
-    // Step 1 — Save to Supabase database
-    const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/contact_messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`,
-        "Prefer": "return=minimal",
-      },
-      body: JSON.stringify({
-        name: form.name,
-        email: form.email,
-        message: form.message,
-        user_agent: navigator.userAgent,
-        submitted_at: Date.now(),
-      }),
-    });
-
-    // Step 2 — Trigger auto-emails via Edge Function
-    await fetch(`${SUPABASE_URL}/functions/v1/send-contact-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_KEY,
-      },
-      body: JSON.stringify({ name: form.name, email: form.email, message: form.message }),
-    });
-
-    if (dbRes.ok) {
-      setStatus("success");
-      setForm({ name: "", email: "", message: "", company: "" });
-      startTime.current = Date.now();
-    } else {
-      setStatus("error");
-    }
-  } catch {
-    setStatus("error");
-  }
+const profile = {
+  name: "Abdul-Hameed Aminu",
+  location: "Abuja, Nigeria",
+  email: "Abdulhameedas.121@proton.me",
+  github: "https://github.com/e-tchero",
+  linkedin: "https://www.linkedin.com/in/abdulhameed-amin/",
 };
-  const inputStyle = {
-    background: "var(--card)", border: "1px solid var(--border)",
-    color: "#c8e6c9", padding: "12px 16px", fontFamily: "var(--font-mono)",
-    fontSize: 13, outline: "none", width: "100%",
-  };
-  const labelStyle = { fontFamily:"var(--font-mono)", fontSize:10, color:"var(--orange)", letterSpacing:3 };
-  const borderColor = status === "success" ? "var(--cyan)" : status === "error" ? "var(--orange)" : "var(--green)";
-  const btnColor    = status === "success" ? "var(--cyan)" : status === "error" ? "var(--orange)" : "var(--green)";
-  const btnText     = status === "sending" ? "TRANSMITTING..." : status === "success" ? "MESSAGE_RECEIVED ✓" : status === "error" ? "TRANSMISSION_FAILED — RETRY" : "TRANSMIT_MESSAGE";
 
+const projects = [
+  {
+    number: "01",
+    name: "BLACKWING",
+    category: "Systems engineering",
+    status: "In development",
+    description:
+      "A Rust-based, zero-trust remote desktop platform. Its documented architecture spans encrypted transport, session management, desktop capture and display, clipboard synchronisation, audio, and network traversal.",
+    stack: ["Rust", "Networking", "Cryptography", "Systems"],
+    href: "https://github.com/e-tchero/BLACKWING",
+  },
+  {
+    number: "02",
+    name: "EMBEE NEXUS",
+    category: "Product engineering",
+    status: "In development",
+    description:
+      "A logistics and operations platform for commerce, dispatch, and delivery workflows. The project is adapting an existing baseline toward a modular backend, spatial data, real-time services, and web and mobile experiences.",
+    stack: ["Next.js", "NestJS", "PostgreSQL", "PostGIS", "Redis"],
+    href: "https://github.com/e-tchero/embeenexus-platform",
+  },
+  {
+    number: "03",
+    name: "LOCAL COMPUTER MCP",
+    category: "Developer tooling",
+    status: "Active project",
+    description:
+      "A Windows-first Model Context Protocol server that exposes explicit workstation tools to compatible AI clients, with local command and file operations, stdio and HTTP transports, and audit logging.",
+    stack: ["Python", "MCP", "Windows", "PowerShell"],
+    href: "https://github.com/e-tchero/M-C-P",
+  },
+  {
+    number: "04",
+    name: "PROJECT ORBIT",
+    category: "AI application",
+    status: "Under construction",
+    description:
+      "An AI-native mobile platform bringing conversations, knowledge, projects, and specialised agents into one product, with a Flutter client and a layered FastAPI backend.",
+    stack: ["Flutter", "FastAPI", "Python", "Supabase"],
+    href: "https://github.com/e-tchero/PROJECT-ORBIT",
+  },
+];
+
+const skillGroups = [
+  {
+    label: "Languages",
+    items: ["Java", "Python", "JavaScript", "TypeScript", "Rust", "SQL"],
+  },
+  {
+    label: "Application development",
+    items: ["React", "Next.js", "Node.js", "REST APIs", "HTML", "CSS"],
+  },
+  {
+    label: "Data & infrastructure",
+    items: ["PostgreSQL", "PostGIS", "MySQL", "Redis", "Supabase", "Git"],
+  },
+  {
+    label: "Tools & practice",
+    items: ["Linux", "Windows", "Ollama", "Debugging", "Testing", "AI-assisted development"],
+  },
+];
+
+function ArrowIcon({ diagonal = false }) {
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:16, textAlign:"left" }}>
-
-      {/* 🍯 HONEYPOT — hidden from humans, bots fill it */}
-      <input
-        type="text"
-        value={form.company}
-        onChange={e => setForm({...form, company: e.target.value})}
-        style={{ display:"none" }}
-        tabIndex={-1}
-        autoComplete="off"
-      />
-
-      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-        <label style={labelStyle}>YOUR_NAME</label>
-        <input
-          value={form.name}
-          onChange={e => setForm({...form, name: e.target.value})}
-          placeholder="Enter identifier..."
-          style={inputStyle}
-          onFocus={e => e.target.style.borderColor="#00ff4140"}
-          onBlur={e => e.target.style.borderColor="var(--border)"}
-        />
-      </div>
-
-      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-        <label style={labelStyle}>YOUR_EMAIL</label>
-        <input
-          type="email"
-          value={form.email}
-          onChange={e => setForm({...form, email: e.target.value})}
-          placeholder="Enter contact address..."
-          style={inputStyle}
-          onFocus={e => e.target.style.borderColor="#00ff4140"}
-          onBlur={e => e.target.style.borderColor="var(--border)"}
-        />
-      </div>
-
-      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-        <label style={labelStyle}>MESSAGE</label>
-        <textarea
-          rows={4}
-          value={form.message}
-          onChange={e => setForm({...form, message: e.target.value})}
-          placeholder="Describe your mission..."
-          style={{...inputStyle, resize:"none"}}
-          onFocus={e => e.target.style.borderColor="#00ff4140"}
-          onBlur={e => e.target.style.borderColor="var(--border)"}
-        />
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        disabled={status === "sending"}
-        style={{ fontFamily:"var(--font-hud)", fontSize:13, padding:14, background:"transparent", border:`1px solid ${borderColor}`, color:btnColor, cursor:"pointer", letterSpacing:4, transition:"all .25s", marginTop:8 }}
-        onMouseEnter={e => { if(status==="idle"){e.currentTarget.style.background="var(--green)";e.currentTarget.style.color="#000";}}}
-        onMouseLeave={e => { if(status==="idle"){e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--green)";}}}
-      >
-        {btnText}
-      </button>
-    </div>
+    <svg aria-hidden="true" viewBox="0 0 16 16" fill="none">
+      {diagonal ? (
+        <path d="M4 12 12 4M5 4h7v7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      ) : (
+        <path d="M2.5 8h10m-4-4 4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      )}
+    </svg>
   );
 }
-// ─── MAIN ─────────────────────────────────────────────────────────────────────
-export default function Portfolio() {
-  const [termOpen, setTermOpen] = useState(false);
-  const tagColors = { ai:"#00e5ff", auto:"#ff6d00", web:"#00ff41", tools:"#e040fb" };
+
+function Mark() {
+  return (
+    <a className="wordmark" href="#top" aria-label="Abdul-Hameed Aminu, home">
+      <span className="wordmark-symbol">A<span>.</span></span>
+      <span className="wordmark-name">ABDUL-HAMEED AMINU</span>
+    </a>
+  );
+}
+
+export default function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const els = document.querySelectorAll(".reveal");
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity="1"; e.target.style.transform="translateY(0)"; } });
-    }, { threshold: .1 });
-    els.forEach(el => { el.style.opacity="0"; el.style.transform="translateY(30px)"; el.style.transition="opacity .6s ease, transform .6s ease"; obs.observe(el); });
-    return () => obs.disconnect();
+    let disposed = false;
+    let lenis;
+    let frame = 0;
+    let gsap;
+    let ScrollTrigger;
+
+    const startMotion = async () => {
+      try {
+        const [lenisModule, gsapModule, triggerModule] = await Promise.all([
+          import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/lenis@1.3.17/+esm"),
+          import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/gsap@3.14.2/+esm"),
+          import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/gsap@3.14.2/ScrollTrigger/+esm"),
+        ]);
+        if (disposed || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        const Lenis = lenisModule.default;
+        gsap = gsapModule.gsap || gsapModule.default;
+        ScrollTrigger = triggerModule.ScrollTrigger || triggerModule.default;
+        gsap.registerPlugin(ScrollTrigger);
+
+        lenis = new Lenis({ duration: 1.05, smoothWheel: true });
+        lenis.on("scroll", ScrollTrigger.update);
+        const tick = (time) => {
+          lenis.raf(time);
+          frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+
+        gsap.from(".hero-eyebrow", { y: 18, opacity: 0, duration: 0.8, ease: "power3.out", delay: 0.15 });
+        gsap.from(".hero-title-line", { yPercent: 110, opacity: 0, duration: 1, stagger: 0.12, ease: "power4.out", delay: 0.25 });
+        gsap.from(".hero-copy, .hero-actions, .hero-meta", {
+          y: 20, opacity: 0, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.6,
+        });
+
+        gsap.utils.toArray("[data-reveal]").forEach((element) => {
+          gsap.fromTo(element, { y: 28, opacity: 0 }, {
+            y: 0,
+            opacity: 1,
+            duration: 0.85,
+            ease: "power3.out",
+            scrollTrigger: { trigger: element, start: "top 88%", once: true },
+          });
+        });
+        ScrollTrigger.refresh();
+      } catch {
+        document.documentElement.classList.add("motion-fallback");
+      }
+    };
+
+    startMotion();
+
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(frame);
+      if (lenis) lenis.destroy();
+      if (ScrollTrigger) ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      if (gsap) gsap.killTweensOf("[data-reveal]");
+    };
   }, []);
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <>
-      <style>{globalStyles}</style>
-      <Cursor />
-      {termOpen && <Terminal onClose={() => setTermOpen(false)} />}
+    <div id="top" className="site-shell">
+      <header className="site-header">
+        <div className="header-inner">
+          <Mark />
+          <button
+            className="menu-toggle"
+            type="button"
+            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+          </button>
+          <nav className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="Main navigation">
+            <a href="#about" onClick={closeMenu}>About</a>
+            <a href="#work" onClick={closeMenu}>Selected work</a>
+            <a href="#skills" onClick={closeMenu}>Capabilities</a>
+            <a href="#education" onClick={closeMenu}>Education</a>
+            <a className="nav-contact" href="#contact" onClick={closeMenu}>Let's talk <ArrowIcon diagonal /></a>
+          </nav>
+        </div>
+      </header>
 
-      {/* NAV */}
-      <nav style={{ position:"fixed",top:0,left:0,right:0,zIndex:500,display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 40px",background:"linear-gradient(180deg,rgba(2,12,4,.95) 0%,transparent 100%)",borderBottom:"1px solid #00ff4115" }}>
-        <span style={{ fontFamily:"var(--font-hud)",fontSize:13,color:"var(--green)",letterSpacing:4,textShadow:"var(--glow-g)" }}>ETCH/ERO</span>
-        <div style={{ display:"flex",gap:32 }}>
-          {["ABOUT","SKILLS","PROJECTS","CONTACT"].map(s => (
-            <a key={s} href={`#${s.toLowerCase()}`} style={{ fontFamily:"var(--font-mono)",fontSize:12,color:"#4caf50",textDecoration:"none",letterSpacing:2,transition:"color .2s" }}
-              onMouseEnter={e=>e.target.style.color="var(--green)"} onMouseLeave={e=>e.target.style.color="#4caf50"}>{s}</a>
-          ))}
-        </div>
-        <button onClick={() => setTermOpen(true)} style={{ fontFamily:"var(--font-mono)",fontSize:11,padding:"6px 14px",background:"transparent",border:"1px solid var(--orange)",color:"var(--orange)",cursor:"none",letterSpacing:2,transition:"all .2s",textShadow:"var(--glow-o)" }}
-          onMouseEnter={e=>{e.target.style.background="var(--orange)";e.target.style.color="#000";}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.color="var(--orange)";}}>[ TERMINAL ]</button>
-      </nav>
-
-      {/* HERO */}
-      <section id="hero" style={{ position:"relative",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",zIndex:1 }}>
-        <Rain />
-        <div style={{ position:"relative",zIndex:2,textAlign:"center",padding:20 }}>
-          <div style={{ fontFamily:"var(--font-mono)",fontSize:12,color:"var(--orange)",letterSpacing:4,marginBottom:16,textShadow:"var(--glow-o)",animation:"fadeIn .8s ease both" }}>// SYSTEM ONLINE — PORTFOLIO v2.0</div>
-          <h1 style={{ fontFamily:"var(--font-hud)",fontSize:"clamp(36px,6vw,72px)",fontWeight:900,letterSpacing:6,lineHeight:1.1,marginBottom:8,background:"linear-gradient(135deg,#00ff41,#00e5ff)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",filter:"drop-shadow(0 0 20px #00ff4160)",animation:"fadeIn 1s .2s ease both",opacity:0 }}>ABDULHAMEED AMIN</h1>
-          <div style={{ width:200,height:2,background:"linear-gradient(90deg,transparent,var(--orange),transparent)",margin:"20px auto",animation:"expand .8s .4s ease both",transform:"scaleX(0)" }} />
-          <TypingRole />
-          <div style={{ marginTop:40,display:"flex",gap:20,justifyContent:"center",flexWrap:"wrap",animation:"fadeIn 1s 1s ease both",opacity:0 }}>
-            <button onClick={()=>document.querySelector('#projects').scrollIntoView({behavior:'smooth'})} style={{ fontFamily:"var(--font-mono)",fontSize:13,padding:"12px 28px",background:"transparent",border:"1px solid var(--green)",color:"var(--green)",cursor:"none",letterSpacing:2,transition:"all .25s" }}
-              onMouseEnter={e=>{e.target.style.background="var(--green)";e.target.style.color="#000";e.target.style.boxShadow="var(--glow-g)";}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.color="var(--green)";e.target.style.boxShadow="none";}}>VIEW_PROJECTS</button>
-            <button onClick={()=>document.querySelector('#contact').scrollIntoView({behavior:'smooth'})} style={{ fontFamily:"var(--font-mono)",fontSize:13,padding:"12px 28px",background:"transparent",border:"1px solid var(--cyan)",color:"var(--cyan)",cursor:"none",letterSpacing:2,transition:"all .25s" }}
-              onMouseEnter={e=>{e.target.style.background="var(--cyan)";e.target.style.color="#000";}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.color="var(--cyan)";}}>INIT_CONTACT</button>
-          </div>
-          <Cube />
-        </div>
-        <div style={{ position:"absolute",bottom:30,left:"50%",transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:8,animation:"fadeIn 1s 2s ease both",opacity:0 }}>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"#4caf50",letterSpacing:3 }}></span>
-          <div style={{ width:1,height:40,background:"linear-gradient(180deg,var(--green),transparent)",animation:"pulse-line 2s ease-in-out infinite" }} />
-        </div>
-      </section>
-
-      {/* ABOUT */}
-      <section id="about" style={{ position:"relative",zIndex:1,padding:"100px 40px",background:"linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%)" }}>
-        <div style={{ textAlign:"center",marginBottom:60 }}>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"var(--orange)",letterSpacing:5,display:"block",marginBottom:12 }}>// 01 — ABOUT_ME</span>
-          <h2 style={{ fontFamily:"var(--font-hud)",fontSize:"clamp(24px,4vw,40px)",fontWeight:700,letterSpacing:4,background:"linear-gradient(135deg,#fff,#c8e6c9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>WHO AM I</h2>
-          <div style={{ width:80,height:2,background:"linear-gradient(90deg,var(--orange),var(--cyan))",margin:"16px auto 0" }} />
-        </div>
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:40,maxWidth:900,margin:"0 auto",alignItems:"center" }}>
-          <div>
-            {[
-              "I'm a <software engineer> and <AI builder> based in Abuja, Nigeria — operating at the intersection of automation, intelligence, and systems design.",
-              "I build tools that <eliminate repetitive work>, orchestrate AI agents, and help founders and freelancers buy back their time.",
-              "Passionate about <ethical hacking>, clean architecture, and turning complex ideas into working software — fast.",
-            ].map((p,i) => (
-              <p key={i} className="reveal" style={{ fontSize:16,lineHeight:1.9,color:"#a5d6a7",marginBottom:16,fontWeight:300 }}>
-                {p.split(/<([^>]+)>/g).map((part, j) =>
-                  j % 2 === 1 ? (
-                    <span key={j} style={{ color:"var(--cyan)", fontFamily:"var(--font-mono)", fontSize:14 }}>{part}</span>
-                  ) : (
-                    part
-                  )
-                )}
+      <main>
+        <section className="hero section-wrap">
+          <div className="hero-grid">
+            <div className="hero-main">
+              <p className="eyebrow hero-eyebrow"><span className="eyebrow-mark" /> SOFTWARE DEVELOPER · PRODUCT BUILDER</p>
+              <h1 className="hero-title" aria-label="Abdul-Hameed Aminu">
+                <span className="hero-title-line">Abdul-Hameed</span>
+                <span className="hero-title-line hero-title-last">Aminu<span className="title-period">.</span></span>
+              </h1>
+              <p className="hero-copy">
+                I build practical software, digital products, and developer tools.
+                Focused on thoughtful engineering, reliable systems, and turning
+                ideas into useful working products.
               </p>
-            ))}
-          </div>
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
-            {[["4+","PROJECTS SHIPPED"],["AI","CORE FOCUS"],["∞","AUTOMATION IDEAS"],["01","BUY BACK TIME"]].map(([n,l],i) => (
-              <div key={i} className="reveal" style={{ background:"var(--card)",border:"1px solid var(--border)",padding:20,textAlign:"center",position:"relative",overflow:"hidden",transition:"border-color .3s" }}>
-                <div style={{ position:"absolute",top:0,left:0,width:"100%",height:2,background:"linear-gradient(90deg,var(--green),var(--cyan))" }} />
-                <div style={{ fontFamily:"var(--font-hud)",fontSize:28,fontWeight:900,color:"var(--green)",textShadow:"var(--glow-g)" }}>{n}</div>
-                <div style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"#4caf50",letterSpacing:2,marginTop:4 }}>{l}</div>
+              <div className="hero-actions">
+                <a className="button button-dark" href="#work">Explore my work <ArrowIcon /></a>
+                <a className="text-link" href={profile.email ? "mailto:" + profile.email : "#contact"}>Get in touch <ArrowIcon diagonal /></a>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SKILLS */}
-      <section id="skills" style={{ position:"relative",zIndex:1,padding:"100px 40px",background:"var(--bg)" }}>
-        <div style={{ textAlign:"center",marginBottom:60 }}>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"var(--orange)",letterSpacing:5,display:"block",marginBottom:12 }}>// 02 — SKILL_SET</span>
-          <h2 style={{ fontFamily:"var(--font-hud)",fontSize:"clamp(24px,4vw,40px)",fontWeight:700,letterSpacing:4,background:"linear-gradient(135deg,#fff,#c8e6c9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>CAPABILITIES</h2>
-          <div style={{ width:80,height:2,background:"linear-gradient(90deg,var(--orange),var(--cyan))",margin:"16px auto 0" }} />
-        </div>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:24,maxWidth:1000,margin:"0 auto" }}>
-          {SKILLS.map((s,i) => (
-            <div key={i} className="reveal" style={{ background:"var(--card)",border:"1px solid var(--border)",padding:28,transition:"all .3s" }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4140";e.currentTarget.style.transform="translateY(-4px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";}}>
-              <div style={{ fontSize:24,marginBottom:12 }}>{s.icon}</div>
-              <div style={{ fontFamily:"var(--font-hud)",fontSize:13,letterSpacing:3,color:"var(--cyan)",marginBottom:16,textShadow:"var(--glow-c)" }}>{s.name}</div>
-              <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
-                {s.tags.map((t,j) => <span key={j} style={{ fontFamily:"var(--font-mono)",fontSize:10,padding:"4px 10px",border:"1px solid #00ff4130",color:"#69f0ae",background:"rgba(0,255,65,.04)",letterSpacing:1 }}>{t}</span>)}
+              <div className="hero-meta">
+                <span><i className="availability-dot" /> Open to software internships</span>
+                <span>{profile.location}</span>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* PROJECTS */}
-      <section id="projects" style={{ position:"relative",zIndex:1,padding:"100px 40px",background:"var(--bg2)" }}>
-        <div style={{ textAlign:"center",marginBottom:60 }}>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"var(--orange)",letterSpacing:5,display:"block",marginBottom:12 }}>// 03 — PROJECTS</span>
-          <h2 style={{ fontFamily:"var(--font-hud)",fontSize:"clamp(24px,4vw,40px)",fontWeight:700,letterSpacing:4,background:"linear-gradient(135deg,#fff,#c8e6c9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>WHAT I'VE BUILT</h2>
-          <div style={{ width:80,height:2,background:"linear-gradient(90deg,var(--orange),var(--cyan))",margin:"16px auto 0" }} />
-        </div>
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:24,maxWidth:1100,margin:"0 auto" }}>
-          {PROJECTS.map((p,i) => (
-            <div key={i} className="reveal" style={{ background:"var(--card)",border:"1px solid var(--border)",padding:28,position:"relative",overflow:"hidden",transition:"all .35s",cursor:"none" }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4130";e.currentTarget.style.transform="translateY(-6px)";e.currentTarget.style.boxShadow="0 20px 40px rgba(0,0,0,.6),0 0 30px rgba(0,255,65,.05)";}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}}>
-              <div style={{ fontFamily:"var(--font-hud)",fontSize:11,color:"var(--orange)",letterSpacing:3,marginBottom:12,opacity:.8 }}>PROJECT_{p.id}</div>
-              <div style={{ fontFamily:"var(--font-hud)",fontSize:17,fontWeight:700,letterSpacing:2,color:"#e8f5e9",marginBottom:10 }}>{p.title}</div>
-              <div style={{ fontSize:14,color:"#81c784",lineHeight:1.7,marginBottom:20,fontWeight:300 }}>{p.desc}</div>
-              <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:20 }}>
-                {p.tags.map(([label,type],j) => (
-                  <span key={j} style={{ fontFamily:"var(--font-mono)",fontSize:9,padding:"3px 10px",letterSpacing:1.5,border:`1px solid ${tagColors[type]}40`,color:tagColors[type],background:`${tagColors[type]}10` }}>{label}</span>
-                ))}
+            <aside className="hero-aside" aria-label="Developer profile">
+              <div className="profile-card">
+                <div className="profile-card-top">
+                  <span>PERSONAL PROFILE</span>
+                  <span className="profile-index">001 / 026</span>
+                </div>
+                <div className="monogram" aria-hidden="true">
+                  <span>A</span><span className="monogram-dot">.</span>
+                </div>
+                <div className="profile-card-bottom">
+                  <div>
+                    <span className="profile-label">CURRENT FOCUS</span>
+                    <strong>Software engineering</strong>
+                  </div>
+                  <div className="profile-card-rule" />
+                  <div className="profile-card-tags">
+                    <span>BUILD</span><span>REFINE</span><span>SHIP</span>
+                  </div>
+                </div>
               </div>
-              <a href="#" style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"var(--green)",letterSpacing:2,textDecoration:"none" }}>EXPLORE →</a>
-            </div>
-          ))}
-        </div>
-      </section>
+              <div className="aside-note">
+                <span className="aside-note-line" />
+                <p>Curiosity is the starting point.<br />Engineering is the practice.</p>
+              </div>
+            </aside>
+          </div>
+          <div className="hero-bottomline">
+            <span>PORTFOLIO / 2026</span>
+            <a href="#about">SCROLL TO EXPLORE <span>↓</span></a>
+            <span>INDEPENDENTLY BUILT IN ABUJA</span>
+          </div>
+        </section>
 
-      {/* CONTACT */}
-      <section id="contact" style={{ position:"relative",zIndex:1,padding:"100px 40px",background:"var(--bg)" }}>
-        <div style={{ textAlign:"center",marginBottom:60 }}>
-          <span style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"var(--orange)",letterSpacing:5,display:"block",marginBottom:12 }}>// 04 — CONTACT</span>
-          <h2 style={{ fontFamily:"var(--font-hud)",fontSize:"clamp(24px,4vw,40px)",fontWeight:700,letterSpacing:4,background:"linear-gradient(135deg,#fff,#c8e6c9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>INIT CONNECTION</h2>
-          <div style={{ width:80,height:2,background:"linear-gradient(90deg,var(--orange),var(--cyan))",margin:"16px auto 0" }} />
-        </div>
-        <div style={{ maxWidth:600,margin:"0 auto",textAlign:"center" }}>
-          <p style={{ fontSize:16,color:"#81c784",lineHeight:1.9,marginBottom:40,fontWeight:300 }}>Got a project? Want to collaborate? Ready to automate something? Let's talk.</p>
-
-          {/* CONTACT CARDS */}
-          <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:40 }}>
-            {CONTACT_CARDS.map(({ icon, label, val, href }, i) => (
-              <a
-                key={i}
-                href={href}
-                target={href.startsWith("mailto") ? "_self" : "_blank"}
-                rel="noopener noreferrer"
-                className="reveal"
-                style={{ background:"var(--card)",border:"1px solid var(--border)",padding:20,transition:"all .3s",textDecoration:"none",display:"block",cursor:"pointer" }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor="#00ff4140";e.currentTarget.style.transform="translateY(-4px)";}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="";}}
-              >
-                <div style={{ fontSize:22,marginBottom:8 }}>{icon}</div>
-                <div style={{ fontFamily:"var(--font-mono)",fontSize:10,color:"var(--orange)",letterSpacing:2,marginBottom:4 }}>{label}</div>
-                <div style={{ fontFamily:"var(--font-mono)",fontSize:12,color:"var(--cyan)",wordBreak:"break-all",lineHeight:1.6 }}>{val}</div>
+        <section className="intro-section section-wrap" id="about">
+          <div className="section-kicker" data-reveal><span>01</span> / ABOUT</div>
+          <div className="intro-grid">
+            <h2 data-reveal>Engineering ideas<br />into <em>useful software.</em></h2>
+            <div className="intro-copy" data-reveal>
+              <p>
+                I am an Advanced Diploma in Software Engineering student at
+                Aptech Computer Education in Abuja, developing my practice through
+                coursework and independent software projects.
+              </p>
+              <p>
+                My interests include application development, backend systems,
+                databases, AI-enabled tools, and developer infrastructure. I enjoy
+                understanding how systems fit together, tracing problems to their
+                cause, and making focused improvements that hold up in practice.
+              </p>
+              <p>
+                I value clear requirements, maintainable code, useful documentation,
+                and verification over claims that cannot be demonstrated.
+              </p>
+              <a className="inline-link" href={profile.github} target="_blank" rel="noreferrer">
+                Explore my GitHub <ArrowIcon diagonal />
               </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="work-section section-wrap" id="work">
+          <div className="section-heading" data-reveal>
+            <div>
+              <div className="section-kicker"><span>02</span> / SELECTED WORK</div>
+              <h2>Projects with a<br /><em>purpose.</em></h2>
+            </div>
+            <p className="section-heading-note">
+              A selection of systems and products I am building or developing.
+              Each project links to its source repository and documents its current scope.
+            </p>
+          </div>
+          <div className="project-list">
+            {projects.map((project) => (
+              <article className="project-row" key={project.number} data-reveal>
+                <div className="project-number">{project.number}</div>
+                <div className="project-content">
+                  <div className="project-topline">
+                    <span>{project.category}</span>
+                    <span className="project-status">{project.status}</span>
+                  </div>
+                  <h3>{project.name}</h3>
+                  <p>{project.description}</p>
+                  <div className="project-tags">
+                    {project.stack.map((item) => <span key={item}>{item}</span>)}
+                  </div>
+                </div>
+                <a className="project-open" href={project.href} target="_blank" rel="noreferrer" aria-label={"View " + project.name + " repository"}>
+                  <ArrowIcon diagonal />
+                </a>
+              </article>
             ))}
           </div>
+          <div className="work-footnote">
+            <span>MORE EXPERIMENTS & SOURCE CODE</span>
+            <a className="inline-link" href={profile.github} target="_blank" rel="noreferrer">Visit GitHub <ArrowIcon diagonal /></a>
+          </div>
+        </section>
 
-          {/* CONTACT FORM */}
-          <ContactForm />
+        <section className="capabilities-section section-wrap" id="skills">
+          <div className="section-kicker" data-reveal><span>03</span> / CAPABILITIES</div>
+          <div className="capabilities-heading" data-reveal>
+            <h2>Tools for the<br /><em>work at hand.</em></h2>
+            <p>
+              Technologies encountered through my current studies and project work.
+              I keep learning, testing, and expanding this toolkit.
+            </p>
+          </div>
+          <div className="skill-groups">
+            {skillGroups.map((group, index) => (
+              <div className="skill-group" key={group.label} data-reveal>
+                <div className="skill-group-number">0{index + 1}</div>
+                <div className="skill-group-name">{group.label}</div>
+                <div className="skill-list">
+                  {group.items.map((item) => <span key={item}>{item}</span>)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="education-section section-wrap" id="education">
+          <div className="section-kicker" data-reveal><span>04</span> / EDUCATION</div>
+          <div className="education-grid">
+            <h2 data-reveal>Learning through<br /><em>practice.</em></h2>
+            <div className="education-entry" data-reveal>
+              <span className="education-period">CURRENT STUDIES</span>
+              <div>
+                <h3>Aptech Computer Education</h3>
+                <p>Advanced Diploma in Software Engineering (ADSE)</p>
+                <span className="education-detail">Semester 2 · Abuja, Nigeria</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="contact-section section-wrap" id="contact">
+          <div className="contact-top" data-reveal>
+            <div className="section-kicker"><span>05</span> / CONTACT</div>
+            <p className="contact-overline">HAVE A PROJECT, ROLE, OR TECHNICAL CHALLENGE?</p>
+            <h2>Let's make<br /><em>something work.</em></h2>
+          </div>
+          <div className="contact-bottom" data-reveal>
+            <a className="contact-email" href={"mailto:" + profile.email}>{profile.email}<ArrowIcon diagonal /></a>
+            <div className="contact-links">
+              <a href={profile.github} target="_blank" rel="noreferrer">GitHub <ArrowIcon diagonal /></a>
+              <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn <ArrowIcon diagonal /></a>
+              <a href="https://abdulhameedamin.ct.ws" target="_blank" rel="noreferrer">Portfolio <ArrowIcon diagonal /></a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="footer-inner">
+          <Mark />
+          <span>© {new Date().getFullYear()} Abdul-Hameed Aminu</span>
+          <a href="#top">BACK TO TOP ↑</a>
         </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{ background:"var(--bg)",borderTop:"1px solid var(--border)",padding:"30px 40px",textAlign:"center",position:"relative",zIndex:1 }}>
-        <p style={{ fontFamily:"var(--font-mono)",fontSize:11,color:"#2e7d32",letterSpacing:2 }}>
-          © 2025 <span style={{ color:"var(--green)" }}>ABDULHAMEED AMIN</span> — BUILT WITH REACT — <span style={{ color:"var(--green)" }}>ETCHERO</span>
-        </p>
       </footer>
-    </>
+    </div>
   );
 }
